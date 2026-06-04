@@ -122,6 +122,21 @@ function fmtData(v) {
   if (n.length <= 4) return n.replace(/(\d{2})(\d{0,2})/, "$1/$2");
   return n.replace(/(\d{2})(\d{2})(\d{0,4})/, "$1/$2/$3");
 }
+function calcularIdade(dataStr) {
+  // espera DD/MM/AAAA
+  const m = dataStr.match(/^(\d{2})\/(\d{2})\/(\d{4})$/);
+  if (!m) return null;
+  const dia = parseInt(m[1]), mes = parseInt(m[2]), ano = parseInt(m[3]);
+  if (mes < 1 || mes > 12 || dia < 1 || dia > 31) return null;
+  const nasc = new Date(ano, mes - 1, dia);
+  if (nasc.getDate() !== dia || nasc.getMonth() !== mes - 1) return null;
+  const hoje = new Date();
+  let idade = hoje.getFullYear() - ano;
+  const fezAniversario = (hoje.getMonth() > mes - 1) || (hoje.getMonth() === mes - 1 && hoje.getDate() >= dia);
+  if (!fezAniversario) idade--;
+  if (idade < 0 || idade > 120) return null;
+  return idade;
+}
 
 function BotaoDuvida() {
   const url = "https://api.whatsapp.com/send?phone=" + WHATSAPP_DUVIDAS + "&text=" + encodeURIComponent("Olá! Tenho uma dúvida sobre o pedido de chopp.");
@@ -129,7 +144,7 @@ function BotaoDuvida() {
     <a href={url} target="_blank" rel="noopener noreferrer" style={{ textDecoration: "none", display: "block", marginTop: 16 }}>
       <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 8, padding: "10px", borderRadius: 10, border: "1.5px solid #25D366", background: "rgba(37,211,102,0.08)", cursor: "pointer" }}>
         <svg width="18" height="18" viewBox="0 0 24 24" fill="#25D366"><path d="M12.04 2c-5.46 0-9.91 4.45-9.91 9.91 0 1.75.46 3.45 1.32 4.95L2.05 22l5.25-1.38c1.45.79 3.08 1.21 4.74 1.21 5.46 0 9.91-4.45 9.91-9.91S17.5 2 12.04 2zm0 18.15c-1.48 0-2.93-.4-4.2-1.15l-.3-.18-3.12.82.83-3.04-.2-.31a8.26 8.26 0 01-1.26-4.38c0-4.54 3.7-8.24 8.25-8.24 2.2 0 4.27.86 5.82 2.42a8.18 8.18 0 012.41 5.83c0 4.54-3.7 8.24-8.24 8.24z"/></svg>
-        <span style={{ fontSize: 13, color: "#1a8a4a", fontWeight: 700 }}>Tire sua dúvida no WhatsApp</span>
+        <span style={{ fontSize: 13, color: "#1a8a4a", fontWeight: 700 }}>Tire suas dúvidas no Whatsapp</span>
       </div>
     </a>
   );
@@ -434,19 +449,36 @@ function StepEvento({ data, setData, onNext, onBack }) {
       setCepStatus("ok");
     } catch { setCepStatus("erro"); }
   }
-  const ok = data.data && data.hora && data.rua && data.bairro && data.cidade && data.uf && data.tipoLocal;
+
+  // validação de data/hora: não permite passado; se hoje, horário > hora atual
+  const hojeStr = new Date().toISOString().split("T")[0];
+  const agora = new Date();
+  const eventoHoje = data.data === hojeStr;
+  // horários disponíveis: se evento for hoje, só os futuros
+  const horariosDisponiveis = HORARIOS.filter(h => {
+    if (!eventoHoje) return true;
+    const [hh, mm] = h.split(":").map(Number);
+    return (hh > agora.getHours()) || (hh === agora.getHours() && mm > agora.getMinutes());
+  });
+  // se o horário escolhido deixou de ser válido (mudou para hoje), limpa
+  if (eventoHoje && data.hora && !horariosDisponiveis.includes(data.hora)) {
+    setData(d => ({ ...d, hora: "" }));
+  }
+
+  const ok = data.data && data.hora && data.rua && data.numero && data.bairro && data.cidade && data.uf && data.tipoLocal;
 
   return (
     <div>
       <h2 style={styles.stepTitle}>Sobre o Evento 📅</h2>
       <p style={styles.stepSub}>Data, duração e local do evento</p>
       <label style={styles.label}>Data do evento</label>
-      <input type="date" value={data.data || ""} onChange={handle("data")} style={styles.input} min={new Date().toISOString().split("T")[0]} />
+      <input type="date" value={data.data || ""} onChange={handle("data")} style={styles.input} min={hojeStr} />
       <label style={styles.label}>Horário do evento (início)</label>
       <select value={data.hora || ""} onChange={handle("hora")} style={styles.input}>
         <option value="">Selecione o horário...</option>
-        {HORARIOS.map(h => <option key={h} value={h}>{h}</option>)}
+        {horariosDisponiveis.map(h => <option key={h} value={h}>{h}</option>)}
       </select>
+      {eventoHoje && horariosDisponiveis.length === 0 && <p style={{ fontSize: 11, color: C.vermelho, marginTop: 4 }}>Não há mais horários disponíveis para hoje. Escolha outra data.</p>}
       <label style={styles.label}>Quantidade de diárias</label>
       <div style={{ display: "flex", alignItems: "center", gap: 14, background: "#fff", border: "1.5px solid rgba(0,0,0,0.12)", borderRadius: 10, padding: "0 16px", height: 46, boxSizing: "border-box" }}>
         <button onClick={() => setDiarias(diarias - 1)} style={{ ...styles.qtyBtn, width: 30, height: 30, fontSize: 20, background: "rgba(0,0,0,0.08)", color: C.cinzaTexto }}>−</button>
@@ -474,10 +506,18 @@ function StepEvento({ data, setData, onNext, onBack }) {
       </div>
       {cepStatus === "erro" && <p style={{ fontSize: 11, color: C.vermelho, marginTop: 4 }}>CEP não encontrado. Preencha manualmente.</p>}
       {cepStatus === "ok" && <p style={{ fontSize: 11, color: C.verde, marginTop: 4 }}>Endereço encontrado! Confira e complete.</p>}
-      <label style={styles.label}>Rua / Avenida e número</label>
-      <input type="text" placeholder="Ex: Rua das Palmeiras, 123" value={data.rua || ""} onChange={handle("rua")} style={styles.input} />
-      <label style={styles.label}>Bairro</label>
-      <input type="text" placeholder="Ex: Centro" value={data.bairro || ""} onChange={handle("bairro")} style={styles.input} />
+      <label style={styles.label}>Rua / Avenida</label>
+      <input type="text" placeholder="Ex: Rua das Palmeiras" value={data.rua || ""} onChange={handle("rua")} style={styles.input} />
+      <div style={{ display: "flex", gap: 10 }}>
+        <div style={{ flex: 1 }}>
+          <label style={styles.label}>Número</label>
+          <input type="text" inputMode="numeric" placeholder="Ex: 123" value={data.numero || ""} onChange={handle("numero")} style={styles.input} />
+        </div>
+        <div style={{ flex: 2 }}>
+          <label style={styles.label}>Bairro</label>
+          <input type="text" placeholder="Ex: Centro" value={data.bairro || ""} onChange={handle("bairro")} style={styles.input} />
+        </div>
+      </div>
       <div style={{ display: "flex", gap: 10 }}>
         <div style={{ flex: 3 }}>
           <label style={styles.label}>Cidade</label>
@@ -612,6 +652,11 @@ function StepContratante({ data, setData, onNext, onBack }) {
       <input type="tel" inputMode="numeric" placeholder="(11) 99999-9999" value={data.telefone || ""} onChange={e => setData(d => ({ ...d, telefone: fmtTelefone(e.target.value) }))} style={styles.input} maxLength={16} />
       <label style={styles.label}>Data de nascimento</label>
       <input type="text" inputMode="numeric" placeholder="DD/MM/AAAA" value={data.nascimento || ""} onChange={e => setData(d => ({ ...d, nascimento: fmtData(e.target.value) }))} style={styles.input} maxLength={10} />
+      {data.nascimento && data.nascimento.length === 10 && (
+        calcularIdade(data.nascimento) !== null
+          ? <p style={{ fontSize: 12, color: C.cinzaTexto, marginTop: 6, fontWeight: 600 }}>Idade: {calcularIdade(data.nascimento)} anos</p>
+          : <p style={{ fontSize: 11, color: C.vermelho, marginTop: 6 }}>Data inválida</p>
+      )}
       <label style={styles.label}>CPF / CNPJ</label>
       <input type="text" inputMode="numeric" placeholder="000.000.000-00 ou 00.000.000/0001-00" value={data.cpfcnpj || ""} onChange={e => setData(d => ({ ...d, cpfcnpj: fmtDoc(e.target.value) }))} style={styles.input} maxLength={18} />
       <div style={styles.btnRow}>
@@ -723,7 +768,8 @@ function StepResumo({ data, onBack }) {
 
   let msgBody = "*PEDIDO CHOPP IN*\n\n";
   msgBody += "Modalidade: " + modNome + "\n\n";
-  msgBody += "*CONTRATANTE*\nNome: " + data.nome + "\nWhatsApp: " + data.telefone + "\nNascimento: " + data.nascimento + "\nCPF/CNPJ: " + data.cpfcnpj + "\n\n";
+  const idadeCalc = data.nascimento ? calcularIdade(data.nascimento) : null;
+  msgBody += "*CONTRATANTE*\nNome: " + data.nome + "\nWhatsApp: " + data.telefone + "\nNascimento: " + data.nascimento + (idadeCalc !== null ? " (" + idadeCalc + " anos)" : "") + "\nCPF/CNPJ: " + data.cpfcnpj + "\n\n";
   if (modalidade !== "so-chopeira") {
     msgBody += "*BARRIS (" + totalLitros + "L total)*\n" + linhaBarris + "\n";
     if (t.desconto > 0) msgBody += "Desconto (" + (t.qtdBarris-1) + "x R$50): - " + formatMoney(t.desconto) + "\n";
@@ -739,7 +785,7 @@ function StepResumo({ data, onBack }) {
   msgBody += "Entrega: " + (data.entrega === "dedicada" ? "Dedicada as " + data.horaEntrega + "h" : "Compartilhada") + "\n";
   msgBody += "Recolha: " + (data.recolha === "dedicada" ? "Dedicada as " + data.horaRecolha + "h" : "Compartilhada") + " - " + dataRecolha + "\n";
   if (t.adicionalDedicada > 0) msgBody += "Taxa dedicada: + " + formatMoney(t.adicionalDedicada) + " (1x)\n";
-  msgBody += "\n*ENDERECO DO EVENTO*\nEndereco: " + data.rua + "\nBairro: " + data.bairro + "\nCidade: " + cidadeUf + (data.complemento ? "\nComplemento: " + data.complemento : "") + "\n";
+  msgBody += "\n*ENDERECO DO EVENTO*\nEndereco: " + data.rua + ", " + data.numero + "\nBairro: " + data.bairro + "\nCidade: " + cidadeUf + (data.complemento ? "\nComplemento: " + data.complemento : "") + "\n";
   if (data.cepDisplay) msgBody += "CEP: " + data.cepDisplay + "\n";
   if (data.eventoOutraPessoa && data.moradorNome) msgBody += "Responsavel no local: " + data.moradorNome + (data.moradorTel ? "\nTelefone: " + data.moradorTel : "") + "\n";
   msgBody += "Local de montagem: " + data.tipoLocal + "\n";
@@ -790,7 +836,7 @@ function StepResumo({ data, onBack }) {
         <SectionLabel>👤 CONTRATANTE</SectionLabel>
         <Row label="Nome / Razão Social" value={data.nome} />
         <Row label="WhatsApp" value={data.telefone} />
-        <Row label="Nascimento" value={data.nascimento} />
+        <Row label="Nascimento" value={data.nascimento + (idadeCalc !== null ? " (" + idadeCalc + " anos)" : "")} />
         <Row label="CPF / CNPJ" value={data.cpfcnpj} />
 
         <Divider />
@@ -803,7 +849,7 @@ function StepResumo({ data, onBack }) {
 
         <Divider />
         <SectionLabel>📍 ENDEREÇO DO EVENTO</SectionLabel>
-        <Row label="Endereço" value={data.rua} />
+        <Row label="Endereço" value={data.rua + (data.numero ? ", " + data.numero : "")} />
         <Row label="Bairro" value={data.bairro} />
         <Row label="Cidade" value={cidadeUf} />
         {data.complemento && <Row label="Complemento" value={data.complemento} />}
