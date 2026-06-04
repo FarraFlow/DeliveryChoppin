@@ -157,7 +157,7 @@ function StepModalidade({ data, setData, onNext }) {
       <h2 style={styles.stepTitle}>O que você precisa?</h2>
       <p style={styles.stepSub}>Escolha a modalidade do seu pedido</p>
       {opcoes.map(op => (
-        <div key={op.id} onClick={() => { setData(d => ({ ...d, modalidade: op.id })); }}
+        <div key={op.id} onClick={() => { setData(d => d.modalidade === op.id ? d : { modalidade: op.id }); }}
           style={{ ...styles.cardSelect, borderColor: data.modalidade === op.id ? C.vermelho : "rgba(0,0,0,0.08)", background: data.modalidade === op.id ? "rgba("+hexToRgb(C.vermelho)+",0.05)" : "#fff" }}>
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: 10 }}>
             <div style={{ display: "flex", gap: 12, alignItems: "flex-start" }}>
@@ -404,9 +404,13 @@ function StepAluguelChopeira({ data, setData, onNext, onBack }) {
           </div>
         </div>
       )}
+      <div style={{ height: 1, background: "rgba(0,0,0,0.08)", margin: "22px 0 4px" }} />
+      <label style={styles.label}>Quantidade de chopp que você vai servir (litros)</label>
+      <input type="number" inputMode="numeric" placeholder="Ex: 100" value={data.litrosChopp || ""} onChange={e => setData(d => ({ ...d, litrosChopp: e.target.value.replace(/\D/g, "") }))} style={styles.input} />
+      <p style={{ fontSize: 11, color: C.cinzaClaro, marginTop: 6 }}>Precisamos saber a quantidade de chopp para enviar um cilindro de CO² com capacidade adequada.</p>
       <div style={styles.btnRow}>
         <button onClick={onBack} style={styles.btnSecondary}>← Voltar</button>
-        <button onClick={onNext} disabled={!MODO_TESTE && (!data.chopeira || (data.chopeira === "eletrica" && !data.tensao))} style={{ ...styles.btnPrimary, opacity: (MODO_TESTE || !(!data.chopeira || (data.chopeira === "eletrica" && !data.tensao))) ? 1 : 0.4 }}>Continuar →</button>
+        <button onClick={onNext} disabled={!MODO_TESTE && (!data.chopeira || (data.chopeira === "eletrica" && !data.tensao) || !data.litrosChopp)} style={{ ...styles.btnPrimary, opacity: (MODO_TESTE || !(!data.chopeira || (data.chopeira === "eletrica" && !data.tensao) || !data.litrosChopp)) ? 1 : 0.4 }}>Continuar →</button>
       </div>
       <BotaoDuvida />
     </div>
@@ -727,7 +731,9 @@ function StepResumo({ data, onBack }) {
     msgBody += "\n";
   }
   if (modalidade === "delivery" || modalidade === "so-chopeira") {
-    msgBody += "*CHOPEIRA*\n" + chopeiraNome + (t.adicionalEletrica > 0 ? " (+R$ 50)" : "") + (modalidade === "so-chopeira" ? " - " + formatMoney(t.aluguel) : "") + "\n\n";
+    msgBody += "*CHOPEIRA*\n" + chopeiraNome + (t.adicionalEletrica > 0 ? " (+R$ 50)" : "") + (modalidade === "so-chopeira" ? " - " + formatMoney(t.aluguel) : "") + "\n";
+    if (modalidade === "so-chopeira" && data.litrosChopp) msgBody += "Qtd. de chopp: " + data.litrosChopp + " L\n";
+    msgBody += "\n";
   }
   msgBody += "*EVENTO*\nData: " + dataEvento + "\nHorario: " + data.hora + "h\nDiarias: " + t.numDiarias + (t.adicionalDiarias > 0 ? " (+" + formatMoney(t.adicionalDiarias) + ")" : "") + "\n";
   msgBody += "Entrega: " + (data.entrega === "dedicada" ? "Dedicada as " + data.horaEntrega + "h" : "Compartilhada") + "\n";
@@ -775,6 +781,7 @@ function StepResumo({ data, onBack }) {
           <SectionLabel>🧊 CHOPEIRA</SectionLabel>
           <Row label="Tipo" value={chopeiraNome} />
           {modalidade === "so-chopeira" && <Row label="Aluguel" value={formatMoney(t.aluguel)} />}
+          {modalidade === "so-chopeira" && data.litrosChopp && <Row label="Qtd. de chopp" value={data.litrosChopp + " L"} />}
           {modalidade === "so-chopeira" && t.adicionalDedicada > 0 && <Row label="🎯 Taxa dedicada (1x)" value={"+ " + formatMoney(t.adicionalDedicada)} />}
           {modalidade === "so-chopeira" && t.adicionalDiarias > 0 && <Row label="📆 Diárias adicionais" value={"+ " + formatMoney(t.adicionalDiarias)} />}
           <Divider />
