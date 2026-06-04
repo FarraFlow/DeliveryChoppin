@@ -450,35 +450,51 @@ function StepEvento({ data, setData, onNext, onBack }) {
     } catch { setCepStatus("erro"); }
   }
 
-  // validação de data/hora: não permite passado; se hoje, horário > hora atual
+  // validação de data/hora
   const hojeStr = new Date().toISOString().split("T")[0];
   const agora = new Date();
   const eventoHoje = data.data === hojeStr;
+  const dataPassada = data.data && data.data < hojeStr;
   // horários disponíveis: se evento for hoje, só os futuros
   const horariosDisponiveis = HORARIOS.filter(h => {
     if (!eventoHoje) return true;
     const [hh, mm] = h.split(":").map(Number);
     return (hh > agora.getHours()) || (hh === agora.getHours() && mm > agora.getMinutes());
   });
-  // se o horário escolhido deixou de ser válido (mudou para hoje), limpa
-  if (eventoHoje && data.hora && !horariosDisponiveis.includes(data.hora)) {
-    setData(d => ({ ...d, hora: "" }));
+  // horário escolhido é válido?
+  const horaInvalida = data.hora && eventoHoje && !horariosDisponiveis.includes(data.hora);
+
+  // ao trocar a data, se o horário ficou inválido, limpa
+  function setDataEvento(e) {
+    const novaData = e.target.value;
+    setData(d => {
+      const ehHoje = novaData === hojeStr;
+      let novaHora = d.hora;
+      if (ehHoje && d.hora) {
+        const [hh, mm] = d.hora.split(":").map(Number);
+        const aindaValido = (hh > agora.getHours()) || (hh === agora.getHours() && mm > agora.getMinutes());
+        if (!aindaValido) novaHora = "";
+      }
+      return { ...d, data: novaData, hora: novaData < hojeStr ? "" : novaHora };
+    });
   }
 
-  const ok = data.data && data.hora && data.rua && data.numero && data.bairro && data.cidade && data.uf && data.tipoLocal;
+  const ok = data.data && !dataPassada && data.hora && !horaInvalida && data.rua && data.numero && data.bairro && data.cidade && data.uf && data.tipoLocal;
 
   return (
     <div>
       <h2 style={styles.stepTitle}>Sobre o Evento 📅</h2>
       <p style={styles.stepSub}>Data, duração e local do evento</p>
       <label style={styles.label}>Data do evento</label>
-      <input type="date" value={data.data || ""} onChange={handle("data")} style={styles.input} min={hojeStr} />
+      <input type="date" value={data.data || ""} onChange={setDataEvento} style={styles.input} min={hojeStr} />
+      {dataPassada && <p style={{ fontSize: 11, color: C.vermelho, marginTop: 4 }}>A data do evento não pode ser anterior a hoje.</p>}
       <label style={styles.label}>Horário do evento (início)</label>
-      <select value={data.hora || ""} onChange={handle("hora")} style={styles.input}>
+      <select value={data.hora || ""} onChange={handle("hora")} style={styles.input} disabled={!data.data || dataPassada}>
         <option value="">Selecione o horário...</option>
         {horariosDisponiveis.map(h => <option key={h} value={h}>{h}</option>)}
       </select>
       {eventoHoje && horariosDisponiveis.length === 0 && <p style={{ fontSize: 11, color: C.vermelho, marginTop: 4 }}>Não há mais horários disponíveis para hoje. Escolha outra data.</p>}
+      {eventoHoje && horariosDisponiveis.length > 0 && <p style={{ fontSize: 11, color: C.cinzaClaro, marginTop: 4 }}>Para eventos hoje, apenas horários a partir de agora.</p>}
       <label style={styles.label}>Quantidade de diárias</label>
       <div style={{ display: "flex", alignItems: "center", gap: 14, background: "#fff", border: "1.5px solid rgba(0,0,0,0.12)", borderRadius: 10, padding: "0 16px", height: 46, boxSizing: "border-box" }}>
         <button onClick={() => setDiarias(diarias - 1)} style={{ ...styles.qtyBtn, width: 30, height: 30, fontSize: 20, background: "rgba(0,0,0,0.08)", color: C.cinzaTexto }}>−</button>
@@ -559,7 +575,7 @@ function StepEvento({ data, setData, onNext, onBack }) {
       )}
       <div style={styles.btnRow}>
         <button onClick={onBack} style={styles.btnSecondary}>← Voltar</button>
-        <button onClick={onNext} disabled={!MODO_TESTE && (!ok || (data.eventoOutraPessoa && !data.moradorNome))} style={{ ...styles.btnPrimary, opacity: (MODO_TESTE || !(!ok || (data.eventoOutraPessoa && !data.moradorNome))) ? 1 : 0.4 }}>Continuar →</button>
+        <button onClick={onNext} disabled={dataPassada || horaInvalida || (!MODO_TESTE && (!ok || (data.eventoOutraPessoa && !data.moradorNome)))} style={{ ...styles.btnPrimary, opacity: (dataPassada || horaInvalida || (!MODO_TESTE && (!ok || (data.eventoOutraPessoa && !data.moradorNome)))) ? 0.4 : 1 }}>Continuar →</button>
       </div>
       <BotaoDuvida />
     </div>
@@ -939,8 +955,8 @@ function App() {
   const stepAtual = fluxo[step] || "modalidade";
   const totalSteps = fluxo.length - 1; // resumo não conta na barra
 
-  const next = () => setStep(s => Math.min(s + 1, fluxo.length - 1));
-  const back = () => setStep(s => Math.max(s - 1, 0));
+  const next = () => { setStep(s => Math.min(s + 1, fluxo.length - 1)); window.scrollTo(0, 0); };
+  const back = () => { setStep(s => Math.max(s - 1, 0)); window.scrollTo(0, 0); };
 
   return (
     <div style={styles.root}>
