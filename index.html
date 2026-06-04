@@ -457,8 +457,11 @@ function StepEvento({ data, setData, onNext, onBack }) {
   const dataPassada = data.data && data.data < hojeStr;
   // horários disponíveis: se evento for hoje, só os futuros
   const horariosDisponiveis = HORARIOS.filter(h => {
-    if (!eventoHoje) return true;
     const [hh, mm] = h.split(":").map(Number);
+    // range do evento: 9h às 22h
+    const dentroRange = (hh > 9 || (hh === 9 && mm >= 0)) && (hh < 22 || (hh === 22 && mm === 0));
+    if (!dentroRange) return false;
+    if (!eventoHoje) return true;
     return (hh > agora.getHours()) || (hh === agora.getHours() && mm > agora.getMinutes());
   });
   // horário escolhido é válido?
