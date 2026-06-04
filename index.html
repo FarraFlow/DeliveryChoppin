@@ -12,16 +12,11 @@
 <meta property="og:image:height" content="630">
 <meta property="og:url" content="https://farraflow.github.io/DeliveryChoppin/">
 <meta name="twitter:card" content="summary_large_image">
-<meta name="twitter:title" content="Chopp In - O melhor chopp no seu evento">
 <meta name="twitter:image" content="https://farraflow.github.io/DeliveryChoppin/og-image.jpg">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Poppins:wght@700;800&display=swap" rel="stylesheet">
-<style>
-  * { margin: 0; padding: 0; }
-  body { font-family: 'DM Sans', sans-serif; }
-  #root { width: 100%; }
-</style>
+<style>* { margin: 0; padding: 0; } body { font-family: 'DM Sans', sans-serif; } #root { width: 100%; }</style>
 <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
 <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
 <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
@@ -846,8 +841,8 @@ function Divider() { return <div style={{ height: 1, background: "rgba(0,0,0,0.0
 
 // ─── APP com navegação dinâmica por modalidade ───────────────────────────────
 function App() {
-  const [step, setStep] = React.React.useState(0);
-  const [data, setData] = React.React.useState({});
+  const [step, setStep] = React.useState(0);
+  const [data, setData] = React.useState({});
 
   // monta a sequência de steps conforme a modalidade
   function getFluxo() {
