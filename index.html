@@ -61,7 +61,7 @@ const WHATSAPP_NUMBER = "5521992051425";
 const WHATSAPP_DUVIDAS = "5521992051425";
 const PARCELA_MINIMA = 200;
 const MODO_TESTE = true;
-const VERSAO = "04/06/2026 às 21:40";
+const VERSAO = "04/06/2026 às 21:47";
 
 const C = { vermelho: "#D6202A", dourado: "#F5A623", creme: "#FFFDF8", cinzaTexto: "#3A3A3A", cinzaClaro: "#8A8A8A", verde: "#2E9E5B" };
 
@@ -896,7 +896,7 @@ function StepResumo({ data, onBack }) {
           <span style={{ fontSize: 22 }}>💬</span> Confirmar no WhatsApp
         </button>
       </a>
-      <button onClick={onBack} style={{ ...styles.btnSecondary, marginTop: 10 }}>← Editar pedido</button>
+      <button onClick={onBack} style={{ ...styles.btnSecondary, marginTop: 16 }}>← Editar pedido</button>
       <p style={{ fontSize: 11, color: C.cinzaClaro, textAlign: "center", marginTop: 16 }}>Você será redirecionado ao WhatsApp. O pagamento é combinado diretamente com nossa equipe.</p>
     </div>
   );
@@ -998,8 +998,8 @@ const styles = {
   litroBtn: { border: "none", borderRadius: 8, padding: "8px 14px", fontSize: 13, cursor: "pointer", transition: "all 0.15s ease" },
   qtyBtn: { width: 26, height: 26, borderRadius: 6, border: "none", cursor: "pointer", fontSize: 16, fontWeight: 700, display: "flex", alignItems: "center", justifyContent: "center", lineHeight: 1 },
   btnPrimary: { width: "100%", padding: "15px", borderRadius: 12, border: "none", background: C.vermelho, color: "#fff", fontWeight: 700, fontSize: 15, cursor: "pointer", transition: "opacity 0.2s", fontFamily: "'DM Sans', sans-serif", boxShadow: "0 4px 12px rgba(214,32,42,0.25)", boxSizing: "border-box" },
-  btnSecondary: { width: "100%", padding: "13px", borderRadius: 12, border: "1.5px solid rgba(0,0,0,0.12)", background: "#fff", color: C.cinzaClaro, fontWeight: 500, fontSize: 14, cursor: "pointer", fontFamily: "'DM Sans', sans-serif", marginTop: 10, boxSizing: "border-box" },
-  btnRow: { display: "flex", flexDirection: "column", gap: 0, marginTop: 24 },
+  btnSecondary: { width: "100%", padding: "13px", borderRadius: 12, border: "1.5px solid rgba(0,0,0,0.12)", background: "#fff", color: C.cinzaClaro, fontWeight: 500, fontSize: 14, cursor: "pointer", fontFamily: "'DM Sans', sans-serif", marginTop: 16, boxSizing: "border-box" },
+  btnRow: { display: "flex", flexDirection: "column-reverse", gap: 0, marginTop: 24 },
   label: { display: "block", fontSize: 13, color: C.cinzaTexto, marginBottom: 6, marginTop: 16, fontWeight: 600, textAlign: "left" },
   groupLabel: { fontSize: 14, color: C.cinzaTexto, fontWeight: 700, marginTop: 8, marginBottom: 10, textAlign: "left" },
   input: { width: "100%", padding: "12px 14px", borderRadius: 10, border: "1.5px solid rgba(0,0,0,0.12)", background: "#fff", color: C.cinzaTexto, fontSize: 14, fontFamily: "'DM Sans', sans-serif", outline: "none", boxSizing: "border-box", textAlign: "left", WebkitAppearance: "none", appearance: "none" },
