@@ -61,7 +61,7 @@ const WHATSAPP_NUMBER = "5521992051425";
 const WHATSAPP_DUVIDAS = "5521992051425";
 const PARCELA_MINIMA = 200;
 const MODO_TESTE = true;
-const VERSAO = "04/06/2026 às 20:11";
+const VERSAO = "04/06/2026 às 20:18";
 
 const C = { vermelho: "#D6202A", dourado: "#F5A623", creme: "#FFFDF8", cinzaTexto: "#3A3A3A", cinzaClaro: "#8A8A8A", verde: "#2E9E5B" };
 
@@ -333,7 +333,7 @@ function StepBarris({ data, setData, onNext, onBack }) {
 function StepChopeira({ data, setData, onNext, onBack }) {
   const { total } = calcTotais(data);
   const opcoes = [
-    { id: "gelo", label: "Chopeira a Gelo", desc: "Clássica e econômica, sem necessidade de tomada.", img: IMG_CHOPEIRA_GELO, recomendada: true, extra: "" },
+    { id: "gelo", label: "Chopeira a Gelo", desc: "Clássica e econômica, sem necessidade de tomada.", img: IMG_CHOPEIRA_GELO, recomendada: true, extra: "", aviso: "Importante: o gelo não é fornecido. Fica por conta do cliente." },
     { id: "eletrica", label: "Chopeira Elétrica", desc: "Mais prática, requer tomada disponível no local.", img: IMG_CHOPEIRA_ELETRICA, recomendada: false, extra: "+ R$ 50,00 (sujeito à disponibilidade)" },
   ];
   return (
@@ -353,6 +353,7 @@ function StepChopeira({ data, setData, onNext, onBack }) {
                 </div>
                 <div style={{ fontSize: 12, color: C.cinzaClaro, marginTop: 3 }}>{op.desc}</div>
                 {op.extra && <div style={{ fontSize: 11, color: C.vermelho, marginTop: 3, fontWeight: 600 }}>{op.extra}</div>}
+                {op.aviso && <div style={{ fontSize: 11, color: C.dourado, marginTop: 4, fontWeight: 700 }}>{op.aviso}</div>}
               </div>
             </div>
             {data.chopeira === op.id && <span style={{ color: C.vermelho, fontSize: 20 }}>✓</span>}
@@ -383,7 +384,7 @@ function StepChopeira({ data, setData, onNext, onBack }) {
 // ─── STEP: Aluguel de chopeira (modalidade so-chopeira) ──────────────────────
 function StepAluguelChopeira({ data, setData, onNext, onBack }) {
   const opcoes = [
-    { id: "gelo", label: "Chopeira a Gelo", desc: "Clássica e econômica, sem necessidade de tomada.", img: IMG_CHOPEIRA_GELO, recomendada: true, preco: ALUGUEL_CHOPEIRA.gelo },
+    { id: "gelo", label: "Chopeira a Gelo", desc: "Clássica e econômica, sem necessidade de tomada.", img: IMG_CHOPEIRA_GELO, recomendada: true, preco: ALUGUEL_CHOPEIRA.gelo, aviso: "Importante: o gelo não é fornecido. Fica por conta do cliente." },
     { id: "eletrica", label: "Chopeira Elétrica", desc: "Mais prática, requer tomada disponível no local.", img: IMG_CHOPEIRA_ELETRICA, recomendada: false, preco: ALUGUEL_CHOPEIRA.eletrica },
   ];
   return (
@@ -403,6 +404,7 @@ function StepAluguelChopeira({ data, setData, onNext, onBack }) {
                 </div>
                 <div style={{ fontSize: 12, color: C.cinzaClaro, marginTop: 3 }}>{op.desc}</div>
                 <div style={{ fontSize: 13, color: C.vermelho, marginTop: 4, fontWeight: 700 }}>{formatMoney(op.preco)}</div>
+                {op.aviso && <div style={{ fontSize: 11, color: C.dourado, marginTop: 4, fontWeight: 700 }}>{op.aviso}</div>}
               </div>
             </div>
             {data.chopeira === op.id && <span style={{ color: C.vermelho, fontSize: 20 }}>✓</span>}
