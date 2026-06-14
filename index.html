@@ -105,9 +105,7 @@ function calcTotais(data) {
     const aluguel = data.chopeira ? ALUGUEL_CHOPEIRA[data.chopeira] : 0;
     const numDiarias = data.diarias || 1;
     const adicionalDiarias = (numDiarias - 1) * CUSTO_DIARIA_ADICIONAL;
-    const _entDed = data.entrega === "dedicada";
-    const _recDed = data.recolha === "dedicada";
-    const adicionalDedicada = (_entDed && _recDed) ? CUSTO_DEDICADA_AMBAS : ((_entDed || _recDed) ? CUSTO_DEDICADA_UNICA : 0);
+    const _entDed = data.entrega === "dedicada"; const _recDed = data.recolha === "dedicada"; const adicionalDedicada = (_entDed && _recDed) ? CUSTO_DEDICADA_AMBAS : ((_entDed || _recDed) ? CUSTO_DEDICADA_UNICA : 0);
     const total = aluguel + adicionalDiarias + adicionalDedicada;
     return { subtotal: aluguel, desconto: 0, adicionalEletrica: 0, adicionalDedicada, adicionalDiarias, adicionalCopos: 0, tirasExtras: 0, tirasGratis: 0, aluguel, total, qtdBarris: 0, numDiarias };
   }
@@ -116,9 +114,7 @@ function calcTotais(data) {
   const desconto = qtdBarris > 1 ? (qtdBarris - 1) * DESCONTO_POR_BARRIL : 0;
   // chopeira elétrica só no delivery completo
   const adicionalEletrica = (modalidade === "delivery" && data.chopeira === "eletrica") ? 50 : 0;
-  const _entDed = data.entrega === "dedicada";
-    const _recDed = data.recolha === "dedicada";
-    const adicionalDedicada = (_entDed && _recDed) ? CUSTO_DEDICADA_AMBAS : ((_entDed || _recDed) ? CUSTO_DEDICADA_UNICA : 0);
+  const _entDed = data.entrega === "dedicada"; const _recDed = data.recolha === "dedicada"; const adicionalDedicada = (_entDed && _recDed) ? CUSTO_DEDICADA_AMBAS : ((_entDed || _recDed) ? CUSTO_DEDICADA_UNICA : 0);
   const numDiarias = data.diarias || 1;
   const adicionalDiarias = (numDiarias - 1) * CUSTO_DIARIA_ADICIONAL;
   // copos grátis só no delivery completo
@@ -625,7 +621,7 @@ function StepEntrega({ data, setData, onNext, onBack }) {
 
   function OpcaoCard({ campo, op }) {
     const sel = data[campo] === op.id;
-    const badge = op.id === "dedicada" ? "+ " + formatMoney(CUSTO_DEDICADA) : "Incluso";
+    const badge = op.id === "dedicada" ? "+ " + formatMoney(CUSTO_DEDICADA_UNICA) : "Incluso";
     const badgeColor = op.id === "dedicada" ? C.dourado : C.verde;
     return (
       <div onClick={() => setData(d => ({ ...d, [campo]: op.id, ...(op.id === "compartilhada" ? (campo === "entrega" ? { horaEntrega: undefined } : { horaRecolha: undefined }) : {}) }))}
